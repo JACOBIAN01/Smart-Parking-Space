@@ -1,72 +1,95 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const fs = require("fs");
-const csvParser = require("csv-parser"); // Fixed typo
-const csv = require("fast-csv");
-const path = require("path");
+const connectToMongo = require("./DB");
+const exp = require("constants");
 
 const app = express();
-app.use(cors()); // Fixed CORS middleware usage
+app.use(cors());
 app.use(bodyParser.json());
 
-const CSV_FILE = "bookings.csv";
+const fixedSlots = [
+  "A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13","A14","A15","A16","A17","A18","A19","A20",
+];
 
-// Check if the CSV file exists, if not, create one
-if (!fs.existsSync(CSV_FILE)) {
-  fs.writeFileSync(CSV_FILE, "username,carNumber,dateTime\n", "utf8");
-}
 
-// API route to book a slot (Write to CSV)
-app.post("/book-slot", (req, res) => {
-  const { username, carNumber, dateTime } = req.body;
+app.post("/book-slot", async (req,res)=>{
+  const {
+    username,
+    carNumber,
+    vehicleType,
+    fromDateTime,
+    toDateTime,
+    amountPaid,
+    Contact,
+    email,
+    location,
+    bookingStatus,
+    paymentStatus
+  } = req.body;
 
-  if (!username || !carNumber || !dateTime) {
-    return res.status(400).json({ message: "All fields are required" });
+  if(!username||!carNumber||!fromDateTime||!toDateTime){
+    return res.status(400).json({message:"Missing required fields"});
   }
 
-  const newEntry = `${username},${carNumber},${dateTime}\n`;
+  try{
 
-  fs.appendFile(CSV_FILE, newEntry, (err) => {
-    if (err) {
-      return res.status(500).json({ message: "Error saving booking" });
+    const bookingCollection = await connectToMongo();
+
+    //Get All Bookings
+    const allbookings = await bookingCollection.find().toArray();
+
+    const usedSlots = allbookings.map(b=>b.slotNumber);
+
+    const availableSlot = fixedSlots.find(slot=>!usedSlots.includes(slot));
+
+    if(!availableSlot){
+       return res.status(400).json({ message: "No slots available!" });
     }
-    res.json({ message: "Slot booked successfully!" });
-  });
-});
 
-//API Route to Get Data
-
-app.get("/get-all-bookings", (req, res) => {
-  const result = [];
-  fs.createReadStream(CSV_FILE)
-    .pipe(
-      csvParser({
-        headers: ["username", "carNumber", "dateTime"],
-        skipLines: 1,
-      })
-    )
-    .on("data", (data) => result.push(data))
-    .on("end", () => res.json(result))
-    .on("error", (err) =>
-      res.status(500).json({ message: "CSV Read Error", error: err })
-    );
-});
-
-
-
-// DELETE /reset-bookings
-app.delete("/reset-bookings", (req, res) => {
-  fs.writeFile(CSV_FILE, "username,carNumber,dateTime\n", (err) => {
-    if (err) {
-      return res.status(500).json({ message: "Error resetting file." });
+    const newBooking = {
+      username,carNumber,vehicleType,
+      slotNumber:availableSlot,
+      fromDateTime:new Date(fromDateTime),
+      toDateTime:new Date(toDateTime),
+      bookingStatus:bookingStatus||"confirmed",
+      paymentStatus:paymentStatus||"Paid",
+      amountPaid:amountPaid||0,
+      location:location||"VIT AP Main",
+      Contact,
+      email,
     }
-    res.json({ message: "All bookings reset." });
-  });
+
+    await bookingCollection.insertOne(newBooking);
+
+     res.status(200).json({
+      message: "Slot booked successfully!",
+      assignedSlot: availableSlot,
+      booking: newBooking,
+    });
+
+  }catch(err){
+    console.log(err);
+     res.status(500).json({ message: "Error booking slot", error: err });
+  }
 });
 
 
-// Start the server on port 5000 (Backend should not use 5173)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 🚀 Server Start
 app.listen(5000, () => {
-  console.log("Server running on port 5000");
+  console.log("Server running on http://localhost:5000");
 });

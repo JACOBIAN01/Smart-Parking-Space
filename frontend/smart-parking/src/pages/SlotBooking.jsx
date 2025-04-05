@@ -25,6 +25,8 @@ const Navbar = () => (
   </nav>
 );
 
+
+
 const SlotBook = () => {
   const [formData, setFormData] = useState({
     username: "",
@@ -60,7 +62,7 @@ const SlotBook = () => {
         setMessage(`❌ Error: ${data.message}`);
       }
     } catch (error) {
-      setMessage("⚠️ Something went wrong. Try again later.");
+      setMessage("⚠️ Something went wrong. Try again later."+error);
     }
   };
 

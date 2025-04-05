@@ -12,23 +12,25 @@ const UPIPayment = () => {
     }
   }, [userData, navigate]);
 
-  const handleFakePayment = () => {
+  const handlePayment = () => {
     setTimeout(() => {
       alert("Payment Successful ✅");
       navigate("/");
     }, 1000);
   };
 
+  
   return (
     <div className="max-w-md mx-auto mt-20 bg-white shadow-lg p-6 rounded-xl text-center">
       <h2 className="text-2xl font-bold text-blue-700 mb-4">UPI Payment</h2>
-      <p className="text-gray-600 mb-4">Pay ₹50 to confirm your slot.</p>
+      <p className="text-gray-600 mb-4">Pay ₹100 to confirm your slot.</p>
       <div className="bg-gray-100 p-4 mb-4 rounded">
         <p className="text-sm font-semibold">UPI ID:</p>
-        <p className="text-lg font-mono text-gray-800">bookings@upi</p>
+        <p className="text-lg font-mono text-gray-800">7029043892@ybl</p>
+
       </div>
       <button
-        onClick={handleFakePayment}
+        onClick={handlePayment}
         className="bg-green-600 text-white py-2 px-6 rounded-full hover:bg-green-700 transition"
       >
         Pay Now
