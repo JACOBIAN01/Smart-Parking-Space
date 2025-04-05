@@ -1,4 +1,4 @@
-# 🚗 SmartHub - Smart Car Parking System
+# 🚗 Smart Parking Space -  Smart Car Parking System
 
 SmartHub is a **Smart Car Parking Management System** built with the **MERN Stack**. It allows users to check parking availability, reserve slots, and manage bookings efficiently through a user-friendly React dashboard.
 
